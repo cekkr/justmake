@@ -24,5 +24,8 @@
   "bugs": {
     "url": "https://github.com/cekkr/make.js/issues"
   },
-  "homepage": "https://github.com/cekkr/make.js#readme"
+  "homepage": "https://github.com/cekkr/make.js#readme",
+  "bin": {
+    "make.js": "./index.js"
+  }
 }
