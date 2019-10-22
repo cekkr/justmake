@@ -8,7 +8,8 @@
 
 const fs = require('fs')
 const readline = require('readline');
-const { exec } = require('child_process');
+
+const moment = require('moment');
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -25,12 +26,16 @@ var cwd = process.cwd();
 var makefile = cwd + "/Makefile.js";
 
 if(!fs.existsSync(makefile)){
-    rl.question("Makefile doesn't exists, do you want generate a new one? (n) ", (answer) => {
-        answer = answer || "n";
+    rl.question("Makefile doesn't exists, do you want generate a new one? (y) ", (answer) => {
+        answer = answer || "y";
         //console.log(`Thank you for your valuable feedback: ${answer}`);
         
         if(answer == 'y'){
-            fs.writeFile('Makefile.js', '// Insert here commands\r\n', function (err) {
+            
+            let makefileInit = fs.readFileSync(__dirname+"/Makefile.init.js", 'utf8');
+            makefileInit = makefileInit.replace("%INFO%", moment().format('MMMM Do YYYY, h:mm a'));
+            
+            fs.writeFile('Makefile.js', makefileInit, function (err) {
                 if (err) throw err;
                 console.log('Makefile.js is created successfully.');
                 executeMakefile();
@@ -57,11 +62,9 @@ function generateMakefile(){
 
 function executeMakefile(){
     global.make = require("./make.js");
-    console.log(global.make);
     
-    //require(makefile);
     var makefileContent = fs.readFileSync(makefile, 'utf8');
-    eval(makefileContent); //todo: handle errors
+    eval(makefileContent); 
     main();
     
     end();

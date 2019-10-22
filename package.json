@@ -27,5 +27,9 @@
   "homepage": "https://github.com/cekkr/make.js#readme",
   "bin": {
     "make.js": "./index.js"
+  },
+  "dependencies": {
+    "deasync": "^0.1.15",
+    "moment": "^2.24.0"
   }
 }
