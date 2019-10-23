@@ -62,10 +62,12 @@ function generateMakefile(){
 
 function executeMakefile(){
     global.make = require("./make.js");
+    make.init();
     
     var makefileContent = fs.readFileSync(makefile, 'utf8');
     eval(makefileContent); 
-    main();
+    
+    start();
     
     end();
 }
