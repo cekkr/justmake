@@ -32,11 +32,11 @@ function getCompiler(language){
 ///
 module.exports = {
     init: function(){
-        this.language = "";
-        this.flags = "";
+        this.language = '';
+        this.flags = '';
         this.includes = [];
         this.objectsToCompile = [];
-        this.out = "";
+        this.out = '';
         this.buildFolder = false;
     },
     
@@ -62,7 +62,7 @@ module.exports = {
     },
     
     addFlags: function(arg){
-        if(this.flags.length > 0) this.flags += " ";
+        if(this.flags.length > 0) this.flags += ' ';
         this.flags = arrayToString(arg);
     },
     
@@ -81,14 +81,20 @@ module.exports = {
     },
     
     checkBuildFolder: function(){
-        this.buildDir = cwd + "/build";
+        this.buildDir = cwd + '/build';
         if(!fs.existsSync(this.buildDir))
             fs.mkdirSync(this.buildDir);
     },
     
-    compile: function(){
+    _buildCompilerCommand: function(){
+        var cmd = '';
+        cmd += this.cmdCompiler;
+        cmd += ' ' +
+    },
+    
+    compile: function(){ // Compile all files
         // Get compiler
-        var compiler = getCompiler(this.language);
+        this.cmdCompiler = getCompiler(this.language);
         
         if(this.buildFolder)
             this.checkBuildFolder();
@@ -100,8 +106,13 @@ module.exports = {
         var entryIndex = files.indexOf(this.entryFile);
         if(entryIndex >= 0) files.splice(entryIndex, 1);
         
+        //
         // Start async compilation of object files
-        
+        //
+        var numFiles = files.length;
+        for(var f=0; f<numFiles; f++){
+            
+        }
     }
 };
 
@@ -114,7 +125,7 @@ function findFilesParser(folders){
     
     for(var f in folders){
         var folder = folders[f];
-        var path = "", types = "", recursive = false;
+        var path = '', types = '', recursive = false;
         
         var asterisk = false;
         for (var c = 0; c < folder.length; c++) {
@@ -128,7 +139,7 @@ function findFilesParser(folders){
                 else {
                     if(ch == '/'){
                         recursive = true;
-                        types = "";
+                        types = '';
                     }
                     else 
                         types += ch;
@@ -196,13 +207,13 @@ function listFiles(path, types, recursive){
 ///
 function arrayToString(arg, before, after){
     if(Array.isArray(arg)){
-        var str = "";
+        var str = '';
         
         for(var a in arg){
-            if(a > 0) str += " ";
-            if(before) str += "before";
+            if(a > 0) str += ' ';
+            if(before) str += 'before';
             str += arg[a];
-            if(after) str += "after";
+            if(after) str += 'after';
         }
     }
     

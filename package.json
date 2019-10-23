@@ -1,5 +1,5 @@
 {
-  "name": "make.js",
+  "name": "justmake",
   "version": "0.0.1",
   "description": "Makefile as javascript script",
   "main": "index.js",
@@ -26,7 +26,8 @@
   },
   "homepage": "https://github.com/cekkr/make.js#readme",
   "bin": {
-    "make.js": "./index.js"
+    "jsmake": "./index.js",
+    "justmake": "./index.js"
   },
   "dependencies": {
     "deasync": "^0.1.15",
