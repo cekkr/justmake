@@ -20,7 +20,7 @@ const rl = readline.createInterface({
 ///
 /// Execution init
 ///
-console.log("make.js - Riccardo Cecchini (rcecchini.ds@gmail.com)")
+console.log("justmake - Riccardo Cecchini (rcecchini.ds@gmail.com)")
 
 var cwd = process.cwd();
 var makefile = cwd + "/Makefile.js";
