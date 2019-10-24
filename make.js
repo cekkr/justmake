@@ -1,31 +1,11 @@
-const { exec } = require('child_process');
-const deasync = require('deasync');
-const fs = require('fs')
+
+const fs = require('fs');
+const utils = require('./utils.js');
 
 var debug = false;
 var cwd = process.cwd();
 
-///
-/// Languages settings
-///
-var languages = {
-    C: {
-        preferedCompiler: 'cc'
-    }
-};
-
-///
-/// Compiler finder
-///
-function getCompiler(language){
-    // todo
-    if(languages[language]){
-        var lang = languages[language];
-        return lang.preferedCompiler;
-    }
-    
-    return null;
-}
+var compilersSettings = require('./compilersSettings.js');
 
 ///
 /// Make class
@@ -41,39 +21,24 @@ module.exports = {
     },
     
     setLanguage: function(language){
-        this.language = language;
+        this.language = language.toLowerCase();
+        this.compiler = compilersSettings.functions.getCompilerByLanguage(this.language);
+        console.log('compiler: ', this.compiler._compiler);
     },
-    
-    exec: function(cmd, cbk){
-        var ret = {}, done = false;
         
-        exec(cmd, (err, stdout, stderr) => {
-            ret.err = err;
-            ret.response = stdout;
-            ret.stderr = stderr;
-            done = true;
-            
-            if(cbk) cbk(ret);
-        });
-        
-        if(!cbk) deasync.loopWhile(function(){return !done;});
-        
-        return ret;
-    },
-    
     addFlags: function(arg){
         if(this.flags.length > 0) this.flags += ' ';
-        this.flags = arrayToString(arg);
+        this.flags = utils.arrayToString(arg);
     },
     
     include: function(arg){
-        var incl = stringToArray(arg);
-        addArrayToArray(this.includes, incl);
+        var incl = utils.stringToArray(arg);
+        utils.addArrayToArray(this.includes, incl);
     },
     
     compileObjects: function(objs){
-        objs = stringToArray(objs);
-        addArrayToArray(this.objectsToCompile, objs);
+        objs = utils.stringToArray(objs);
+        utils.addArrayToArray(this.objectsToCompile, objs);
     },
     
     useBuildFolder: function(status){
@@ -88,13 +53,29 @@ module.exports = {
     
     _buildCompilerCommand: function(){
         var cmd = '';
-        cmd += this.cmdCompiler;
-        cmd += ' ' +
+        cmd += this.compiler.getCmd();
+        cmd += ' ' + this.compiler.getDefaultFlags();
+        cmd += ' ' + this.flags;
+        
+        // Manage includes
+        for(var i in this.includes){
+            cmd += ' ' + this.compiler.include(this.includes[i]);
+        }
+        
+        console.log('cmd: ',cmd);
     },
     
     compile: function(){ // Compile all files
+        if(!this.compiler){
+            if(this.language)
+                throw new Error('Unable to compile: language ' + this.language.toUpperCase() + ' not found');
+            else
+                throw new Error('Unable to compile: programming language not setted');
+        }
+        
         // Get compiler
-        this.cmdCompiler = getCompiler(this.language);
+        // todo: replace it with compilersSettings
+        //this.cmdCompiler = getCompiler(this.language);
         
         if(this.buildFolder)
             this.checkBuildFolder();
@@ -111,7 +92,7 @@ module.exports = {
         //
         var numFiles = files.length;
         for(var f=0; f<numFiles; f++){
-            
+            this._buildCompilerCommand();
         }
     }
 };
@@ -121,7 +102,7 @@ module.exports = {
 ///
 function findFilesParser(folders){
     var files = [];
-    folders = stringToArray(folders);
+    folders = utils.stringToArray(folders);
     
     for(var f in folders){
         var folder = folders[f];
@@ -153,7 +134,7 @@ function findFilesParser(folders){
             files.push(path);
         else {
             if(!types[0]) types = false;
-            addArrayToArray(files, listFiles(cwd+'/'+path, types, recursive));
+            utils.addArrayToArray(files, listFiles(cwd+'/'+path, types, recursive));
         }
         
         if(debug){
@@ -182,7 +163,7 @@ function listFiles(path, types, recursive){
                 var _files = listFiles(path+'/'+file, types, recursive);
                 
                 if(_files.length > 0)
-                    addArrayToArray(retFiles, _files);
+                    utils.addArrayToArray(retFiles, _files);
             }
         }
         else {
@@ -202,35 +183,4 @@ function listFiles(path, types, recursive){
     return retFiles;
 }
 
-///
-/// Utils
-///
-function arrayToString(arg, before, after){
-    if(Array.isArray(arg)){
-        var str = '';
-        
-        for(var a in arg){
-            if(a > 0) str += ' ';
-            if(before) str += 'before';
-            str += arg[a];
-            if(after) str += 'after';
-        }
-    }
-    
-    return arg;
-}
 
-function stringToArray(str){
-    var ret = str;
-    if(!Array.isArray(ret)){
-        // todo: manage inside quotes spaces
-        ret = ret.split(' '); 
-    }
-    
-    return ret;
-}
-
-function addArrayToArray(dest, src){
-    for(var i in src)
-        dest.push(src[i]);
-}
