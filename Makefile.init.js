@@ -11,10 +11,7 @@ make.flags = "-std=c99 -Wall -Wextra -pedantic -Wno-pointer-arith -Wno-unused-re
 make.addFlags("-lpcre -ltermbox -llua5.3"); // Dynamic libraries (it appends them to make.flags)
 
 make.include("."); // Includes .h files in root directory
-make.include([
-	"vendor/uthash/src", 
-	"vendor/libconfig/lib"
-]);
+// make.include(["example1/include", "example2/include" ]); // It appends new paths
 
 // compileObjects - Syntax examples:
 // libs/mylib.c		Compile the file mylib.c in libs directory
@@ -31,6 +28,8 @@ function start() {
     make.compile();
 }
 
+/* // todo: Work in progress
 function clear() {
 	make.clear();
 }
+*/
