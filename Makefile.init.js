@@ -34,3 +34,11 @@ function start() {
 function clear() {
 	make.clear();
 }
+
+///
+/// JSON Data
+///
+
+jsonData = {
+    
+};

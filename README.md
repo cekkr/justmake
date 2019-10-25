@@ -73,7 +73,7 @@ function clear() {
 
 ## CLI arguments
 You could force some parameters using jsmake arguments
-> $ jsmake --make.compiler '/particular/path/crossgcc'
+> $ jsmake -setCompilerPath '/particular/path/crossgcc'
 
 ## Supported compilers and languages
 ### Languages:

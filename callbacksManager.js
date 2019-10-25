@@ -1,5 +1,4 @@
 const deasync = require('deasync');
-
 const utils = require('./utils.js');
 
 class CallbacksManager {

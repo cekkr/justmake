@@ -129,6 +129,28 @@ module.exports = {
         return obj;
     },
     
+    forceSetProperty: function(obj, path, value){
+        path = path.split('.');
+        for(var p = 0; p < path.length; p++){
+            var pp = path[p];
+            if(p == path.length - 1)
+                obj[pp] = value;
+            else {
+                if(!obj[pp]) obj[pp] = {};
+                obj = obj[pp];
+            }
+        }
+        
+        return obj;
+    },
+    
+    overwriteObject: function(dest, src){
+        if(!src || !dest) return;
+        
+        for(var p in src)
+            dest[p] = src[p];
+    },
+    
     ///
     /// Path, files etc.
     ///

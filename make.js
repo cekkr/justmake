@@ -23,7 +23,9 @@ var buildFolderDir = 'build/';
 /// Make class
 ///
 module.exports = {
-    init: function(){
+    init: function(cliArgs){
+        this.cliArgs = cliArgs;
+        
         this.language = '';
         this.flags = '';
         this.includes = [];
@@ -68,7 +70,7 @@ module.exports = {
             settings = {file: settings};
         
         var cmd = '';
-        cmd += this.compiler.getCmd();
+        cmd += this.cliArgs.setCompilerPath || this.compiler.getCmd();
         cmd += ' ' + this.compiler.getDefaultFlags();
         cmd += ' ' + this.flags;
         
