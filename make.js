@@ -96,6 +96,14 @@ module.exports = {
         else 
             outFile = (this.buildFolder ? buildFolderDir : '') + utils.filenameWithoutExtension(settings.file) + '.o'; 
 
+        if(utils.getFileLastUpdate(outFile) > utils.getFileLastUpdate(settings.file)){
+            // Compiled file is already updated more as possible
+            var res = {alreadyUpdated: true};
+            
+            if(cbk) cbk(res, outFile);
+            return res;
+        }
+        
         cmd += outFile;
         
         utils.createPathIfNecessary(outFile);
@@ -159,8 +167,12 @@ module.exports = {
         var cbksManager = new CallbacksManager();
         var outObjects = [];
         
-        cbksManager.callbackCompleteEvent((file, res, outFile)=>{            
-            console.log('Successfully compiled: \t',file, ' '.repeat(30-file.length), 'at ', outFile);
+        cbksManager.callbackCompleteEvent((file, res, outFile)=>{ 
+            if(res.alreadyUpdated)
+                console.log('Already updated: \t',file, ' '.repeat(30-file.length), 'at ', outFile);
+            else 
+                console.log('Successfully compiled: \t',file, ' '.repeat(30-file.length), 'at ', outFile);
+            
             outObjects.push(outFile);
         });
         
@@ -188,6 +200,10 @@ module.exports = {
             console.log((this.out + ' sucessfully compiled!').bold);
             console.log('\r\nOperation completed!'.bold, '\r\n');
         }
+    },
+    
+    clear: function(){
+        // todo 
     }
 };
 

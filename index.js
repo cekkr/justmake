@@ -26,7 +26,7 @@ var cwd = process.cwd();
 var makefile = cwd + "/Makefile.js";
 
 if(!fs.existsSync(makefile)){
-    rl.question("Makefile doesn't exists, do you want generate a new one? (y) ", (answer) => {
+    rl.question("Makefile.js doesn't exists, do you want generate a new one? (y) ", (answer) => {
         answer = answer || "y";
         //console.log(`Thank you for your valuable feedback: ${answer}`);
         

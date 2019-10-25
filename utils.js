@@ -148,5 +148,12 @@ module.exports = {
             if(!fs.existsSync(curPath))
                 fs.mkdirSync(curPath);
         }
+    },
+    
+    getFileLastUpdate: function(fn){
+        if(fs.existsSync(fn))
+            return fs.statSync(fn).mtime;
+        else 
+            return -1;
     }
 };
