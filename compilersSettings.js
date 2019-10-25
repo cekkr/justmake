@@ -1,7 +1,7 @@
 const utils = require('./utils.js');
 
 var compilersSettings = module.exports = {};
-var structure = {};
+var structure = {}; // For the moment it have a representative function
 
 ///
 /// Languages
@@ -33,9 +33,8 @@ structure.compiler = {
         default: 'string',
         include: 'string'
     },
-    settings: {
-        forLanguages: 'object:language'
-    }
+    
+    settingsForLanguage: 'object:-compilers'
 };
 
 // GCC
@@ -44,7 +43,7 @@ compilers['gcc'] = {
         include: '-I%PATH%'
     },
     
-    settingsByLanguage: {
+    settingsForLanguage: {
         'c': {
             flags: {
                 default: ['-c']
@@ -96,10 +95,11 @@ class Compiler{
         this._compilersSettings = compilersSettings;
         
         // Set _langSettings
-        if(compiler.languages && compiler.languages[language.name])
-            this._langSettings = compiler.languages[language.name];
+        this._langSettings = utils.getPropertyIfExists(compiler, {}, "settingsForLanguage", language.name);
+        /*if(compiler.settingsForLanguage && compiler.settingsForLanguage[language.name])
+            this._langSettings = compiler.settingsForLanguage[language.name];
         else 
-            this._langSettings = {};
+            this._langSettings = {};*/
     }
     
     getCmd(){
@@ -108,10 +108,9 @@ class Compiler{
     
     getDefaultFlags(){
         var c = this._compiler;
-        if(this._langSettings.flags)
-            return utils.arrayToString(this._langSettings.flags);
-        else 
-            return '';
+        
+        var defaultFlags = utils.getPropertyIfExists(this._langSettings, [], 'flags.default');
+        return utils.arrayToString(defaultFlags);
     }
     
     include(path){

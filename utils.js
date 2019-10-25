@@ -125,5 +125,24 @@ module.exports = {
                 prop.name = p;
             }
         }
+    },
+    
+    getPropertyIfExists: function(obj, def){
+        var path = "";
+        for(var a=2; a<arguments.length; a++){
+            if(a>2) path += '.';
+            path += arguments[a]; 
+        }
+        
+        var paths = path.split('.');
+        
+        for(var p of paths){
+            if(obj[p])
+                obj = obj[p];
+            else
+                return def;
+        }
+        
+        return obj;
     }
 };

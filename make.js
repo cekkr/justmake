@@ -23,7 +23,6 @@ module.exports = {
     setLanguage: function(language){
         this.language = language.toLowerCase();
         this.compiler = compilersSettings.functions.getCompilerByLanguage(this.language);
-        console.log('compiler: ', this.compiler._compiler);
     },
         
     addFlags: function(arg){
