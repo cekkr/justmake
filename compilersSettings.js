@@ -96,10 +96,6 @@ class Compiler{
         
         // Set _langSettings
         this._langSettings = utils.getPropertyIfExists(compiler, {}, "settingsForLanguage", language.name);
-        /*if(compiler.settingsForLanguage && compiler.settingsForLanguage[language.name])
-            this._langSettings = compiler.settingsForLanguage[language.name];
-        else 
-            this._langSettings = {};*/
     }
     
     getCmd(){
@@ -114,8 +110,8 @@ class Compiler{
     }
     
     include(path){
-        if(this._compiler.flags && this._compiler.flags.include) //todo: Bisogna rimuoverlo ed automatizzare la struttura
-            return this._compiler.flags.include.replace('%PATH%', path);
+        var include = utils.getPropertyIfExists(this._compiler, '', 'flags.include');
+        return include.replace('%PATH%', path);
     }
 }
 

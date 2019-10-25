@@ -50,7 +50,7 @@ module.exports = {
             fs.mkdirSync(this.buildDir);
     },
     
-    _buildCompilerCommand: function(){
+    _buildCompilerCommand: function(file){
         var cmd = '';
         cmd += this.compiler.getCmd();
         cmd += ' ' + this.compiler.getDefaultFlags();
@@ -60,6 +60,9 @@ module.exports = {
         for(var i in this.includes){
             cmd += ' ' + this.compiler.include(this.includes[i]);
         }
+        
+        // Set the subject file
+        cmd += ' ' + file;
         
         console.log('cmd: ',cmd);
     },
@@ -71,10 +74,6 @@ module.exports = {
             else
                 throw new Error('Unable to compile: programming language not setted');
         }
-        
-        // Get compiler
-        // todo: replace it with compilersSettings
-        //this.cmdCompiler = getCompiler(this.language);
         
         if(this.buildFolder)
             this.checkBuildFolder();
@@ -91,7 +90,7 @@ module.exports = {
         //
         var numFiles = files.length;
         for(var f=0; f<numFiles; f++){
-            this._buildCompilerCommand();
+            this._buildCompilerCommand(files[f]);
         }
     }
 };
@@ -166,6 +165,9 @@ function listFiles(path, types, recursive){
             }
         }
         else {
+            // Set file path
+            file = path.substr(cwd.length + 1) + file;
+            
             if(types){
                 for(var type of types){
                     if(file.endsWith('.'+type)){
