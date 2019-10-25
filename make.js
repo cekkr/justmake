@@ -102,19 +102,18 @@ module.exports = {
         
         var _res = false;
         executionsManager.exec(cmd, (res)=>{      
-            if(res.err){
-                // Kill all processes
-                executionsManager.killAllProcesses();
-                
+            if(res.err){  
+                // Warning: if there is an error in this block in async you'll be not advised...
+        
                 console.log('\r\n', '!!! ERROR !!!'.bgRed.white.bold);
-                console.log('File: \t'.red.bold, file.red.underline);
+                console.log('File: \t'.red.bold, settings.file.red.underline);
                 console.log('');
                 console.log(res.err.message.brightRed.bold.bgBlack);
                 console.log('Operation aborted.'.brightRed.bold.bgBlack, '\r\n');
                 
-                process.exit(0);
+                //process.exit(0);
             }
-            
+
             if(cbk)
                 cbk(res, outFile);
             else
@@ -184,8 +183,11 @@ module.exports = {
         var settings = {isMainFile: true, file: this.entryFile, linkObjects: outObjects };
         
         var res = this._buildCompilerCommand(settings);
-        console.log((this.out + ' sucessfully compiled!').bold);
-        console.log('\r\nOperation completed!'.bold, '\r\n');
+        
+        if(!res.err){
+            console.log((this.out + ' sucessfully compiled!').bold);
+            console.log('\r\nOperation completed!'.bold, '\r\n');
+        }
     }
 };
 
