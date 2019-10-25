@@ -7,6 +7,9 @@ var cwd = process.cwd();
 
 var compilersSettings = require('./compilersSettings.js');
 
+// Generic settings
+var buildFolderDir = 'build/';
+
 ///
 /// Make class
 ///
@@ -44,8 +47,9 @@ module.exports = {
         this.buildFolder = status;
     },
     
+    // todo: repleceable with utils.createPathIfNecessary()
     checkBuildFolder: function(){
-        this.buildDir = cwd + '/build';
+        this.buildDir = cwd + '/' + buildFolderDir;
         if(!fs.existsSync(this.buildDir))
             fs.mkdirSync(this.buildDir);
     },
@@ -64,7 +68,15 @@ module.exports = {
         // Set the subject file
         cmd += ' ' + file;
         
-        console.log('cmd: ',cmd);
+        // Set the out file
+        cmd += ' -o ';
+        var outPath = (this.buildFolder ? buildFolderDir : '') + utils.filenameWithoutExtension(file) + '.o'; 
+        cmd += outPath;
+        
+        utils.createPathIfNecessary(outPath);
+        
+        var res = utils.exec(cmd);
+        // if(res.err) = comando fallito
     },
     
     compile: function(){ // Compile all files

@@ -1,5 +1,8 @@
 const { exec } = require('child_process');
 const deasync = require('deasync');
+const fs = require('fs');
+
+var cwd = process.cwd();
 
 module.exports = {
     
@@ -144,5 +147,26 @@ module.exports = {
         }
         
         return obj;
+    },
+    
+    ///
+    /// Path, files etc.
+    ///
+    
+    filenameWithoutExtension(fn){
+        return fn.split('.').slice(0, -1).join('.');
+    },
+    
+    createPathIfNecessary(fn){
+        var path = fn.split('/');
+        var curPath = cwd;
+        var less = path[path.length-1].indexOf('.') > 0 ? 1 : 0;
+        
+        for(var p=0; p<path.length-less; p++){
+            curPath += '/' + path[p];
+            
+            if(!fs.existsSync(curPath))
+                fs.mkdirSync(curPath);
+        }
     }
 };
