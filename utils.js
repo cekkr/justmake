@@ -1,33 +1,13 @@
-const { exec } = require('child_process');
-const deasync = require('deasync');
 const fs = require('fs');
+
+var executionsManager = require('./executionsManager.js');
 
 var cwd = process.cwd();
 
 module.exports = {
     
-    ///
-    /// Command line functions
-    ///
-    exec: function(cmd, cbk){
-        var ret = {cmd: cmd}, done = false;
-        
-        exec(cmd, (err, stdout, stderr) => {
-            ret.err = err;
-            ret.response = stdout;
-            ret.stderr = stderr;
-            done = true;
-            
-            if(cbk) cbk(ret);
-        });
-        
-        if(!cbk) deasync.loopWhile(function(){return !done;});
-        
-        return ret;
-    },
-    
     programExists: function(program){
-        var res = this.exec('which ' + program);
+        var res = executionsManager.exec('which ' + program);
         return !(res.err || !res.response);
     },
     
@@ -153,11 +133,11 @@ module.exports = {
     /// Path, files etc.
     ///
     
-    filenameWithoutExtension(fn){
+    filenameWithoutExtension: function(fn){
         return fn.split('.').slice(0, -1).join('.');
     },
     
-    createPathIfNecessary(fn){
+    createPathIfNecessary: function(fn){
         var path = fn.split('/');
         var curPath = cwd;
         var less = path[path.length-1].indexOf('.') > 0 ? 1 : 0;

@@ -1,11 +1,20 @@
 
 const fs = require('fs');
-const utils = require('./utils.js');
+const colors = require('colors');
+const deasync = require('deasync');
 
 var debug = false;
 var cwd = process.cwd();
 
+const utils = require('./utils.js');
+
+// Classes
+const CallbacksManager = require('./callbacksManager.js');
+
+// Objects
 var compilersSettings = require('./compilersSettings.js');
+var executionsManager = require('./executionsManager.js');
+
 
 // Generic settings
 var buildFolderDir = 'build/';
@@ -54,7 +63,10 @@ module.exports = {
             fs.mkdirSync(this.buildDir);
     },
     
-    _buildCompilerCommand: function(file){
+    _buildCompilerCommand: function(settings, cbk){
+        if(typeof settings !== 'object')
+            settings = {file: settings};
+        
         var cmd = '';
         cmd += this.compiler.getCmd();
         cmd += ' ' + this.compiler.getDefaultFlags();
@@ -65,21 +77,66 @@ module.exports = {
             cmd += ' ' + this.compiler.include(this.includes[i]);
         }
         
+        // Link objects
+        if(settings.linkObjects){
+            for(var o of settings.linkObjects){
+                cmd + ' ' + o;
+            }
+        }
+        
         // Set the subject file
-        cmd += ' ' + file;
+        cmd += ' ' + settings.file;
         
         // Set the out file
         cmd += ' -o ';
-        var outPath = (this.buildFolder ? buildFolderDir : '') + utils.filenameWithoutExtension(file) + '.o'; 
-        cmd += outPath;
         
-        utils.createPathIfNecessary(outPath);
+        var outFile = '';
+        if(settings.isMainFile) 
+            outFile = this.out || utils.filenameWithoutExtension(this.entryFile) + '.o'
+        else 
+            outFile = (this.buildFolder ? buildFolderDir : '') + utils.filenameWithoutExtension(settings.file) + '.o'; 
+
+        cmd += outFile;
         
-        var res = utils.exec(cmd);
-        // if(res.err) = comando fallito
+        utils.createPathIfNecessary(outFile);
+        
+        var _res = false;
+        executionsManager.exec(cmd, (res)=>{      
+            if(res.err){
+                // Kill all processes
+                executionsManager.killAllProcesses();
+                
+                console.log('\r\n', '!!! ERROR !!!'.bgRed.white.bold);
+                console.log('File: \t'.red.bold, file.red.underline);
+                console.log('');
+                console.log(res.err.message.brightRed.bold.bgBlack);
+                console.log('Operation aborted.'.brightRed.bold.bgBlack, '\r\n');
+                
+                process.exit(0);
+            }
+            
+            if(cbk)
+                cbk(res, outFile);
+            else
+                _res = res;
+        });
+        
+        if(!cbk){
+            deasync.loopWhile(function(){return !_res;});
+            
+            _res.outFile = outFile;
+        }
+            
+        return _res;
     },
     
-    compile: function(){ // Compile all files
+    // Compile all files
+    compile: function(){ 
+        if(!this.entryFile){
+            console.log('Error: entry file is not setted'.red.bold);
+            process.exit(0);
+        }
+        
         if(!this.compiler){
             if(this.language)
                 throw new Error('Unable to compile: language ' + this.language.toUpperCase() + ' not found');
@@ -100,10 +157,35 @@ module.exports = {
         //
         // Start async compilation of object files
         //
+        var cbksManager = new CallbacksManager();
+        var outObjects = [];
+        
+        cbksManager.callbackCompleteEvent((file, res, outFile)=>{            
+            console.log('Successfully compiled: \t',file, ' '.repeat(30-file.length), 'at ', outFile);
+            outObjects.push(outFile);
+        });
+        
+        console.log('Beginning object compilation...'.bold);
+        
+        // Compile all objects!
         var numFiles = files.length;
         for(var f=0; f<numFiles; f++){
-            this._buildCompilerCommand(files[f]);
+            var file = files[f];
+            this._buildCompilerCommand(file, cbksManager.getCallback(file));
         }
+        
+        cbksManager.wait();
+        console.log('Objects compiled!'.bold, '\r\n');
+        
+        ///
+        /// Compile main file!
+        ///
+        console.log(('Compiling ' + this.entryFile + '...').bold);
+        var settings = {isMainFile: true, file: this.entryFile, linkObjects: outObjects };
+        
+        var res = this._buildCompilerCommand(settings);
+        console.log((this.out + ' sucessfully compiled!').bold);
+        console.log('\r\nOperation completed!'.bold, '\r\n');
     }
 };
 

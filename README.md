@@ -1,6 +1,6 @@
 # justmake
 ### Soon a decent readme file. 
-#### WARNING! Work in progress, not working for the moment. 
+#### In this moment the utility is working, now I'm writing the readme file
 
-23 October 2019
+25 October 2019
 - cekkr
