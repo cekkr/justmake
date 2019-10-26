@@ -11,7 +11,7 @@ make.useBuildFolder(true);
 
 // Set flags
 make.flags = "-std=c99 -Wall -Wextra -pedantic -Wno-pointer-arith -Wno-unused-result -Wno-unused-parameter -g -O3 -D_GNU_SOURCE";
-make.addFlags("-lpcre -ltermbox -llua5.3"); // Dynamic libraries (it appends them to make.flags property)
+// make.addFlags("-lpcre -ltermbox -llua5.3"); // Dynamic libraries (it appends them to make.flags property)
 
 make.include("."); // Includes .h files in root directory
 // make.include(["example1/include", "example2/include" ]); // It appends new paths
@@ -38,6 +38,8 @@ function clear() {
 ///
 /// JSON Data
 ///
+/// jsonData is a not-currently-used variable usable in the future for saving project's related
+/// auto generated data.
 
 jsonData = {
     

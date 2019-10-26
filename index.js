@@ -109,6 +109,8 @@ function executeMakefile(){
 
     utils.overwriteObject(make, cliArguments.make); // Force CLI parameters 
     
+    // todo: Manage jsonData
+    
     eval(cliArguments.entryFunction+'()');
     
     end();
