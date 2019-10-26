@@ -9,9 +9,12 @@ make.out = "vv"; // output file name
 // Compile secondary objects in 'build' folder (Default: false)
 make.useBuildFolder(true); 
 
-// Set flags
-make.flags = "-std=c99 -Wall -Wextra -pedantic -Wno-pointer-arith -Wno-unused-result -Wno-unused-parameter -g -O3 -D_GNU_SOURCE";
-// make.addFlags("-lpcre -ltermbox -llua5.3"); // Dynamic libraries (it appends them to make.flags property)
+// Flags for linking process
+make.linkingFlags = "-std=c99 -Wall -Wextra -pedantic -Wno-pointer-arith -Wno-unused-result -Wno-unused-parameter -g -O3 -D_GNU_SOURCE"
+
+// Flags for all objects
+make.flags = "-lpcre -ltermbox -llua5.3";
+// make.flags += '-otherflags'
 
 make.include("."); // Includes .h files in root directory
 // make.include(["example1/include", "example2/include" ]); // It appends new paths

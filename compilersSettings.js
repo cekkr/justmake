@@ -40,7 +40,7 @@ structure.compiler = {
 // GCC
 compilers['gcc'] = {
     flags: {
-        include: '-I%PATH%'
+        includeFormat: '-I%PATH%'
     },
     
     settingsForLanguage: {
@@ -110,7 +110,7 @@ class Compiler{
     }
     
     include(path){
-        var include = utils.getPropertyIfExists(this._compiler, '', 'flags.include');
+        var include = utils.getPropertyIfExists(this._compiler, '', 'flags.includeFormat');
         return include.replace('%PATH%', path);
     }
 }

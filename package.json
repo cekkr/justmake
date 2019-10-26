@@ -1,6 +1,6 @@
 {
   "name": "justmake",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Makefile as javascript script",
   "main": "index.js",
   "scripts": {
@@ -30,7 +30,9 @@
     "justmake": "./index.js"
   },
   "dependencies": {
+    "colors": "^1.4.0",
     "deasync": "^0.1.15",
-    "moment": "^2.24.0"
+    "moment": "^2.24.0",
+    "rimraf": "^3.0.0"
   }
 }

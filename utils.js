@@ -1,6 +1,7 @@
 const fs = require('fs');
+const rimraf = require("rimraf");
 
-var executionsManager = require('./executionsManager.js');
+var executionsManager = require('./managers/executions.js');
 
 var cwd = process.cwd();
 
@@ -152,6 +153,20 @@ module.exports = {
     },
     
     ///
+    /// Strings, in particular...
+    ///
+    
+    // Yes, I could work on prototype of strings...
+    removeRecursevlyFirstChar(str){
+        var fc = str.charAt(0);
+        
+        while(fc == str.charAt(0))
+            str = str.substr(1);
+        
+        return str;
+    },
+    
+    ///
     /// Path, files etc.
     ///
     
@@ -162,13 +177,17 @@ module.exports = {
     createPathIfNecessary: function(fn){
         var path = fn.split('/');
         var curPath = cwd;
-        var less = path[path.length-1].indexOf('.') > 0 ? 1 : 0;
+        var lastIsFile = path[path.length-1].indexOf('.') != 0 ? 1 : 0;
         
-        for(var p=0; p<path.length-less; p++){
-            curPath += '/' + path[p];
+        for(var p=0; p<path.length-lastIsFile; p++){
+            var pp = path[p];
             
-            if(!fs.existsSync(curPath))
-                fs.mkdirSync(curPath);
+            if(pp){
+                curPath += '/' + pp;
+
+                if(!fs.existsSync(curPath))
+                    fs.mkdirSync(curPath);
+            }
         }
     },
     
@@ -177,5 +196,9 @@ module.exports = {
             return fs.statSync(fn).mtime;
         else 
             return -1;
+    },
+    
+    deleteDirectoryRecursively: function(path){
+        rimraf.sync(path);
     }
 };

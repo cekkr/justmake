@@ -9,18 +9,18 @@
 const fs = require('fs')
 const readline = require('readline');
 const moment = require('moment');
+const colors = require('colors');
 
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
 
-const colors = require('colors');
-
+const pjson = require('./package.json');
 const utils = require('./utils.js');
 
 
-console.log("justmake - cekkr@GitHub 2019\r\n");
+console.log("justmake "+ pjson.version +" - cekkr@GitHub 2019\r\n");
 
 ///
 /// Read and manage CLI arguments
@@ -30,42 +30,59 @@ var acceptedArguments = {
     'make': "Force via CLI a value of parameter of 'make' object (Example: jsmake -make.out 'myApplication')"
 }
 
+var acceptedFlags = {
+    'verbose' : 'Activate verbose mode',
+    'help': 'Get command infos'
+}
+
 function listAcceptedArguments(){
-    console.log('Accepted parameters:'.bold);
+    console.log('Accepted parameters:');
     for(var p in acceptedArguments){
-        console.log(p + ':\r\n\t', acceptedArguments[p]);
+        console.log('-'+p.underline + ':\r\n\t', acceptedArguments[p]);
+    }
+    
+    console.log('\r\nAccepted flags:');
+        for(var f in acceptedFlags){
+        console.log('--'+f.underline + ':\r\n\t', acceptedFlags[f]);
     }
     
     console.log();
 }
 
-var cliArguments = {entryFunction: 'start'};
+global.cliArguments = {entryFunction: 'start'};
 for(var a=2; a<process.argv.length; a++){
     var arg = process.argv[a];
     
-    if(!arg.startsWith('-')) {
+    if(!arg.startsWith('-')) { // Is value
          var prevArg = process.argv[a-1]; 
         
-        if(!prevArg.startsWith('-'))
+        if(!prevArg.startsWith('-') || prevArg.startsWith('--'))
             cliArguments.entryFunction = arg;
         else 
             utils.forceSetProperty(cliArguments, prevArg.substr(1), arg);
     }
-    else {
-        if(!arg.startsWith('--')) {
-            var p = arg.substr(1).split('.')[0];
-            var argProp = acceptedArguments[p];
-            if(!argProp){
-                console.log(('Error! Parameter \'' + p + '\' doesn\'t exists').red.bold);
-                listAcceptedArguments();
-                process.exit(0);
-            }
-        }
-        else {
-            // todo: Is a flag
+    else { // Is key
+        var key = utils.removeRecursevlyFirstChar(arg);
+        
+        if(arg.startsWith('--')) 
+            utils.forceSetProperty(cliArguments, key, true);
+                
+        var argProp = acceptedArguments[key] || acceptedFlags[key];
+        console.log(key, argProp);
+        if(!argProp){
+            console.log(('Error! Parameter \'' + key + '\' doesn\'t exists').red.bold);
+            listAcceptedArguments();
+            process.exit(0);
         }
     }
 }
+
+if(cliArguments.help){
+    listAcceptedArguments();
+    
+    process.exit(0);
+}
+
     
 ///
 /// Execution init

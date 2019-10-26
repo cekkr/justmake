@@ -9,11 +9,11 @@ var cwd = process.cwd();
 const utils = require('./utils.js');
 
 // Classes
-const CallbacksManager = require('./callbacksManager.js');
+const CallbacksManager = require('./managers/callbacks.js');
 
 // Objects
 var compilersSettings = require('./compilersSettings.js');
-var executionsManager = require('./executionsManager.js');
+var executionsManager = require('./managers/executions.js');
 
 
 // Generic settings
@@ -27,6 +27,7 @@ module.exports = {
         this.cliArgs = cliArgs;
         
         this.language = '';
+        this.compilerFlags = '';
         this.flags = '';
         this.includes = [];
         this.objectsToCompile = [];
@@ -41,7 +42,7 @@ module.exports = {
         
     addFlags: function(arg){
         if(this.flags.length > 0) this.flags += ' ';
-        this.flags = utils.arrayToString(arg);
+        this.flags += utils.arrayToString(arg);
     },
     
     include: function(arg){
@@ -55,6 +56,9 @@ module.exports = {
     },
     
     useBuildFolder: function(status){
+        if(status === undefined)
+            status = true;
+        
         this.buildFolder = status;
     },
     
@@ -69,36 +73,45 @@ module.exports = {
         if(typeof settings !== 'object')
             settings = {file: settings};
         
-        var cmd = '';
-        cmd += this.cliArgs.setCompilerPath || this.compiler.getCmd();
-        cmd += ' ' + this.compiler.getDefaultFlags();
-        cmd += ' ' + this.flags;
+        var cmd = this.cliArgs.setCompilerPath || this.compiler.getCmd();
+        
+        if(!settings.isMainFile)
+            cmd += ' ' + this.compiler.getDefaultFlags();
+        
+        cmd += ' ' + this.linkingFlags;
         
         // Manage includes
         for(var i in this.includes){
             cmd += ' ' + this.compiler.include(this.includes[i]);
         }
-        
-        // Link objects
-        if(settings.linkObjects){
+                   
+        // If main file, link objects
+        if(settings.isMainFile && settings.linkObjects){
             for(var o of settings.linkObjects){
-                cmd + ' ' + o;
+                cmd += ' ' + o;
             }
         }
-        
+            
         // Set the subject file
-        cmd += ' ' + settings.file;
+        if(!settings.isMainFile)
+            cmd += ' ' + settings.file;
+                
+        // Set flags
+        cmd += ' ' + this.flags;
+        
+        // If main file, compile with links
+        if(settings.isMainFile)
+            cmd += ' -lm';  
         
         // Set the out file
         cmd += ' -o ';
-        
         var outFile = '';
         if(settings.isMainFile) 
             outFile = this.out || utils.filenameWithoutExtension(this.entryFile) + '.o'
         else 
             outFile = (this.buildFolder ? buildFolderDir : '') + utils.filenameWithoutExtension(settings.file) + '.o'; 
 
-        if(utils.getFileLastUpdate(outFile) > utils.getFileLastUpdate(settings.file)){
+        if(!settings.isMainFile && utils.getFileLastUpdate(outFile) > utils.getFileLastUpdate(settings.file)){
             // Compiled file is already updated more as possible
             var res = {alreadyUpdated: true};
             
@@ -107,6 +120,10 @@ module.exports = {
         }
         
         cmd += outFile;
+        
+        if(global.cliArguments.verbose){
+            console.log('\r\n'+cmd);
+        }
         
         utils.createPathIfNecessary(outFile);
         
@@ -141,7 +158,7 @@ module.exports = {
     
     // Compile all files
     compile: function(){ 
-        if(!this.entryFile){
+        if(!this.entryFile && false){
             console.log('Error: entry file is not setted'.red.bold);
             process.exit(0);
         }
@@ -158,6 +175,7 @@ module.exports = {
         
         // Check objects file to compile
         var files = findFilesParser(this.objectsToCompile);
+        files.push(this.entryFile); // Don't forget the main file!
         
         // Remove entry point file if necessary
         var entryIndex = files.indexOf(this.entryFile);
@@ -205,7 +223,12 @@ module.exports = {
     },
     
     clear: function(){
-        // todo 
+        if(this.buildFolder)
+            utils.deleteDirectoryRecursively(cwd+'/'+buildFolderDir);
+        else 
+            console.log('For the moment clear() method outside build folder isn\'t yet implemented');
+            
+        console.log('Clear done.');
     }
 };
 
