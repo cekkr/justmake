@@ -9,17 +9,20 @@ var structure = {}; // For the moment it have a representative function
 var languages = compilersSettings.languages = {};
 
 structure.language = {
-    compilers: 'array'
+    compilers: 'array',
+    extensions: 'array'
 };
 
 // C
 languages['c'] = {
-    compilers: ['cc', 'gcc']
+    compilers:  ['cc', 'gcc'],
+    extensions: ['.c', '.h']
 };
 
 // C++
 languages['c++'] = {
-    inheritance: 'c'
+    inheritance:    'c',
+    extensions:     ['.cpp', '.hpp']
 };
 
 
@@ -40,7 +43,8 @@ structure.compiler = {
 // GCC
 compilers['gcc'] = {
     flags: {
-        includeFormat: '-I%PATH%'
+        includeFormat: '-I%PATH%',
+        warningFormat: '-W%WARN%'
     },
     
     settingsForLanguage: {

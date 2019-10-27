@@ -167,6 +167,28 @@ module.exports = {
     },
     
     ///
+    /// Arguments management
+    ///
+    
+    allArgumentsToArray(args){
+        var arr = [];
+        
+        for(var a in args){
+            var arg = args[a];
+            
+            if(Array.isArray(arg)){
+                for(var v of arg){
+                    arr.push(v);
+                }
+            }
+            else 
+                arr.push(arg);
+        }
+        
+        return arr;
+    },
+    
+    ///
     /// Path, files etc.
     ///
     

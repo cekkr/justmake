@@ -10,7 +10,13 @@ make.out = "vv"; // output file name
 make.useBuildFolder(true); 
 
 // Flags for linking process
-make.linkingFlags = "-std=c99 -Wall -Wextra -pedantic -Wno-pointer-arith -Wno-unused-result -Wno-unused-parameter -g -O3 -D_GNU_SOURCE"
+make.linkingFlags = "-std=c99 -g -O3 -D_GNU_SOURCE"
+
+// Enable warnings
+make.enableWarning('all');
+// make.enableWarning('extra', 'pedantic', 'no-pointer-arith', 'no-unused-result', 'no-unused-parameter'); 
+
+
 
 // Flags for all objects
 make.flags = "-lpcre -ltermbox -llua5.3";
@@ -27,7 +33,7 @@ make.include("."); // Includes .h files in root directory
 // 
 // You could use the function more times
 // It excludes automatically the entry point file
-make.compileObjects("*/*.h"); 
+make.compileFiles("*/*.c"); 
 
 
 function start() {

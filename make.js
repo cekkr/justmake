@@ -22,17 +22,21 @@ var buildFolderDir = 'build/';
 ///
 /// Make class
 ///
-module.exports = {
+var exp = module.exports = {
     init: function(cliArgs){
         this.cliArgs = cliArgs;
         
         this.language = '';
-        this.compilerFlags = '';
-        this.flags = '';
-        this.includes = [];
+
         this.objectsToCompile = [];
         this.out = '';
         this.buildFolder = false;
+        
+        // Compiler settings
+        this.compilerFlags = '';
+        this.flags = '';
+        this.includes = [];
+        this.warnings = [];
     },
     
     setLanguage: function(language){
@@ -50,7 +54,7 @@ module.exports = {
         utils.addArrayToArray(this.includes, incl);
     },
     
-    compileObjects: function(objs){
+    compileFiles: function (objs){
         objs = utils.stringToArray(objs);
         utils.addArrayToArray(this.objectsToCompile, objs);
     },
@@ -73,45 +77,30 @@ module.exports = {
         if(typeof settings !== 'object')
             settings = {file: settings};
         
+        ///
+        /// Build command
+        ///
         var cmd = this.cliArgs.setCompilerPath || this.compiler.getCmd();
         
-        if(!settings.isMainFile)
-            cmd += ' ' + this.compiler.getDefaultFlags();
-        
+        cmd += ' -c'; // Compile file
         cmd += ' ' + this.linkingFlags;
         
         // Manage includes
         for(var i in this.includes){
             cmd += ' ' + this.compiler.include(this.includes[i]);
         }
-                   
-        // If main file, link objects
-        if(settings.isMainFile && settings.linkObjects){
-            for(var o of settings.linkObjects){
-                cmd += ' ' + o;
-            }
-        }
-            
-        // Set the subject file
-        if(!settings.isMainFile)
-            cmd += ' ' + settings.file;
-                
+                                       
         // Set flags
         cmd += ' ' + this.flags;
         
-        // If main file, compile with links
-        if(settings.isMainFile)
-            cmd += ' -lm';  
+        // Set the subject file
+        cmd += ' ' + settings.file;
         
         // Set the out file
         cmd += ' -o ';
-        var outFile = '';
-        if(settings.isMainFile) 
-            outFile = this.out || utils.filenameWithoutExtension(this.entryFile) + '.o'
-        else 
-            outFile = (this.buildFolder ? buildFolderDir : '') + utils.filenameWithoutExtension(settings.file) + '.o'; 
+        var outFile = (this.buildFolder ? buildFolderDir : '') + utils.filenameWithoutExtension(settings.file) + '.o'; 
 
-        if(!settings.isMainFile && utils.getFileLastUpdate(outFile) > utils.getFileLastUpdate(settings.file)){
+        if(utils.getFileLastUpdate(outFile) > utils.getFileLastUpdate(settings.file)){
             // Compiled file is already updated more as possible
             var res = {alreadyUpdated: true};
             
@@ -121,25 +110,18 @@ module.exports = {
         
         cmd += outFile;
         
-        if(global.cliArguments.verbose){
+        ///
+        /// Execute command
+        ///
+        if(global.cliArguments.verbose)
             console.log('\r\n'+cmd);
-        }
         
         utils.createPathIfNecessary(outFile);
         
         var _res = false;
         executionsManager.exec(cmd, (res)=>{      
-            if(res.err){  
-                // Warning: if there is an error in this block in async you'll be not advised...
-        
-                console.log('\r\n', '!!! ERROR !!!'.bgRed.white.bold);
-                console.log('File: \t'.red.bold, settings.file.red.underline);
-                console.log('');
-                console.log(res.err.message.brightRed.bold.bgBlack);
-                console.log('Operation aborted.'.brightRed.bold.bgBlack, '\r\n');
-                
-                //process.exit(0);
-            }
+            if(res.err)   
+                this._handleCompilerError(settings, res);
 
             if(cbk)
                 cbk(res, outFile);
@@ -149,11 +131,85 @@ module.exports = {
         
         if(!cbk){
             deasync.loopWhile(function(){return !_res;});
-            
             _res.outFile = outFile;
         }
             
         return _res;
+    },
+    
+    _buildLinkingCommand: function(settings, cbk){
+        if(typeof settings !== 'object')
+            settings = {file: settings};
+        
+        ///
+        /// Build command
+        ///
+        var cmd = this.cliArgs.setCompilerPath || this.compiler.getCmd();
+        
+        cmd += ' ' + this.compiler.getDefaultFlags();
+        cmd += ' ' + this.linkingFlags;
+        
+        // Manage includes
+        for(var i in this.includes){
+            cmd += ' ' + this.compiler.include(this.includes[i]);
+        }
+                   
+        // Link objects
+        if(settings.linkObjects){
+            for(var o of settings.linkObjects){
+                cmd += ' ' + o;
+            }
+        }
+                
+        // Set flags
+        cmd += ' ' + this.flags;
+        
+        // Compile with links
+        cmd += ' -lm';  
+        
+        // Set the out file
+        cmd += ' -o ';
+        var outFile = this.out || utils.filenameWithoutExtension(this.entryFile) + '.o'
+        
+        cmd += outFile;
+        
+        ///
+        /// Execute command
+        ///
+        if(global.cliArguments.verbose)
+            console.log('\r\n'+cmd);
+        
+        utils.createPathIfNecessary(outFile);
+        
+        var _res = false;
+        executionsManager.exec(cmd, (res)=>{      
+            if(res.err)   
+                this._handleCompilerError(settings, res);
+
+            if(cbk)
+                cbk(res, outFile);
+            else
+                _res = res;
+        });
+        
+        if(!cbk){
+            deasync.loopWhile(function(){return !_res;}); 
+            _res.outFile = outFile;
+        }
+            
+        return _res;
+    },
+    
+    _handleCompilerError: function(settings, res){
+        // Warning: if there is an error in this block in async you'll be not advised...
+        
+        console.log('\r\n', '!!! ERROR !!!'.bgRed.white.bold);
+        console.log('File: \t'.red.bold, settings.file.red.underline);
+        console.log('');
+        console.log(res.err.message.brightRed.bold.bgBlack);
+        console.log('Operation aborted.'.brightRed.bold.bgBlack, '\r\n');
+        
+        process.exit(1);
     },
     
     // Compile all files
@@ -214,7 +270,7 @@ module.exports = {
         console.log(('Compiling ' + this.entryFile + '...').bold);
         var settings = {isMainFile: true, file: this.entryFile, linkObjects: outObjects };
         
-        var res = this._buildCompilerCommand(settings);
+        var res = this._buildLinkingCommand(settings);
         
         if(!res.err){
             console.log((this.out + ' sucessfully compiled!').bold);
@@ -229,8 +285,21 @@ module.exports = {
             console.log('For the moment clear() method outside build folder isn\'t yet implemented');
             
         console.log('Clear done.');
+    },
+    
+    ///
+    /// Compiler settings
+    ///
+    
+    // https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
+    enableWarning: function(){
+        var warnings = utils.allArgumentsToArray(arguments); 
+        utils.addArrayToArray(this.warnings, warnings);
     }
 };
+
+// Deprecateds
+exp.compileObjects = exp.compileFiles; 
 
 ///
 /// FS Utils
