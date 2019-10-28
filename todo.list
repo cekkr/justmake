@@ -1,3 +1,4 @@
-- Implement make.clear method
 - Handle Makefile.js errors
 - jsonData overwrite...
+- Automatic cmake executing
+- Automatic finding include paths
