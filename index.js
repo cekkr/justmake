@@ -19,6 +19,7 @@ const rl = readline.createInterface({
 const pjson = require('./package.json');
 const utils = require('./utils.js');
 
+const motto = 'Javascript for compilation';
 
 console.log("justmake "+ pjson.version +" - cekkr@GitHub 2019\r\n");
 
@@ -28,12 +29,21 @@ console.log("justmake "+ pjson.version +" - cekkr@GitHub 2019\r\n");
 var acceptedArguments = {
     'setCompilerPath': 'Force compilation using the specified application',
     'make': "Force via CLI a value of parameter of 'make' object (Example: jsmake -make.out 'myApplication')"
-}
+};
 
 var acceptedFlags = {
     'verbose' : 'Activate verbose mode',
     'help': 'Get command infos'
-}
+};
+
+var shortcuts = {
+    'h': 'help'
+};
+
+var reservedEntryFunctions = [
+    'init'
+];
+
 
 function listAcceptedArguments(){
     console.log('Accepted parameters:');
@@ -49,8 +59,12 @@ function listAcceptedArguments(){
     console.log();
 }
 
+/// Scan CLI arguments
+
 global.cliArguments = {entryFunction: 'start'};
+
 for(var a=2; a<process.argv.length; a++){
+    
     var arg = process.argv[a];
     
     if(!arg.startsWith('-')) { // Is value
@@ -87,31 +101,49 @@ if(cliArguments.help){
 ///
 /// Execution init
 ///
-var cwd = process.cwd();
-var makefile = cwd + "/Makefile.js";
+var efi = reservedEntryFunctions.indexOf(cliArguments.entryFunction);
 
-if(!fs.existsSync(makefile)){
-    rl.question("Makefile.js doesn't exists, do you want generate a new one? (y) ", (answer) => {
-        answer = answer || "y";
-        //console.log(`Thank you for your valuable feedback: ${answer}`);
-        
-        if(answer == 'y'){
-            
-            let makefileInit = fs.readFileSync(__dirname+"/Makefile.init.js", 'utf8');
-            makefileInit = makefileInit.replace("%INFO%", moment().format('MMMM Do YYYY, h:mm a'));
-            
-            fs.writeFile('Makefile.js', makefileInit, function (err) {
-                if (err) throw err;
-                console.log('Makefile.js is created successfully.');
-                executeMakefile();
-            }); 
-        }
-        else
-            end();
-    });
+if(efi === undefined){
+    makeJsExec();
 }
-else
-    executeMakefile();
+else {
+    console.log('Reserved function execution!');
+}
+
+///
+/// Execution functions
+///
+
+function makeJsExec(){
+
+    var cwd = process.cwd();
+    var makefile = cwd + "/Makefile.js";
+
+    if(!fs.existsSync(makefile)){
+        rl.question("Makefile.js doesn't exists, do you want generate a new one? (y) ", (answer) => {
+            answer = answer || "y";
+            //console.log(`Thank you for your valuable feedback: ${answer}`);
+
+            if(answer == 'y'){
+
+                let makefileInit = fs.readFileSync(__dirname+"/Makefile.init.js", 'utf8');
+                makefileInit = makefileInit.replace("%INFO%", moment().format('MMMM Do YYYY, h:mm a'));
+
+                fs.writeFile('Makefile.js', makefileInit, function (err) {
+                    if (err) throw err;
+                    console.log('Makefile.js is created successfully.');
+                    executeMakefile();
+                }); 
+            }
+            else
+                end();
+        });
+    }
+    else {
+        executeMakefile();
+    }
+    
+}
 
 ///
 /// Steps
