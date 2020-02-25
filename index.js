@@ -19,13 +19,16 @@ const rl = readline.createInterface({
 const pjson = require('./package.json');
 const utils = require('./utils.js');
 
+const title = "justmake "+ pjson.version +" - cekkr@GitHub 2019\r\n";
 const motto = 'Javascript for compilation';
 
-console.log("justmake "+ pjson.version +" - cekkr@GitHub 2019\r\n");
+console.log(title);
+
 
 ///
 /// Read and manage CLI arguments
 ///
+
 var acceptedArguments = {
     'setCompilerPath': 'Force compilation using the specified application',
     'make': "Force via CLI a value of parameter of 'make' object (Example: jsmake -make.out 'myApplication')"
@@ -59,7 +62,9 @@ function listAcceptedArguments(){
     console.log();
 }
 
+///
 /// Scan CLI arguments
+///
 
 global.cliArguments = {entryFunction: 'start'};
 
